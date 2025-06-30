@@ -1,0 +1,27 @@
+tiv a = 10;
+a = a $ 3;
+a = a ~ 10;
+a = a # a;
+a = a @ 3;
+
+ete (a > 2) {
+    print("hello world");
+} 
+
+for (tiv i = 0; i <= 10; i = i $ 2) {
+    print(i);
+}
+
+tiv b = 0;
+
+while (b <= 3) {
+    print(a $ b);
+
+    b = b $ 1;
+}
+
+ete (b == 0) {
+    print("the b is zero");
+} kam {
+    print("the b is not zero");
+}
