@@ -149,6 +149,21 @@ String.prototype.myTrim = function () {
     return res;
 }
 
+// method trimRight
+
+String.prototype.myTrimRight = function () {
+    let end = this.length - 1;
+    let res = "";
+
+    while (this[end] === " " || this[end] === '\t') --end;
+
+    for (let i = 0; i <= end; ++i) {
+        res += this[i];
+    }
+
+    return res;
+}
+
 // method padStart
 
 String.prototype.myPadStart = function (targetLength, padStart = ' ') {
@@ -182,6 +197,31 @@ String.prototype.myPadStart = function (targetLength, padStart = ' ') {
     for (let i = 0; i < this.length; ++i) {
         res += this[i];
     }
+    return res;
+}
+
+// method padEnd
+
+String.prototype.myPadEnd = function (targetLength, padStart = ' ') {
+    let res = "";
+    
+    if (!targetLength || targetLength < 0 || typeof targetLength !== "number") {
+        for (let i = 0; i < this.length; ++i) {
+            res += this[i];
+        }
+
+        return res;
+    }
+
+    for (let i = 0; i < targetLength; ++i) {
+        if (i < this.length) {
+            res += this[i];
+            continue;
+        }
+
+        res += padStart;
+    }
+
     return res;
 }
 
@@ -244,3 +284,50 @@ String.prototype.myReplaceAll = function (pattern, replacement) {
 
     return res;
 }
+
+// method split
+
+String.prototype.mySplit = function (separator, limit) {
+    let res = [];
+    let partString = "";
+    
+    if (arguments.length == 0) {
+        res.push(this);
+        return res;
+    }
+
+    if (limit < 0 || limit === undefined) {
+        limit = this.length;
+    }
+
+    if (typeof limit !== "number") {
+        return res;
+    }
+
+    for (let i = 0; i < this.length; ++i) {
+        if (this[i] !== separator) {
+            partString += this[i];
+            continue;
+        }
+
+        if (limit-- > 0) {
+            res.push(partString);
+        }
+
+        partString = "";
+    }
+
+    if (limit-- > 0) {
+        res.push(partString);
+    }
+
+    return res;
+}
+
+// JS String search methods
+// method indexOf
+
+String.prototype.myIndexOf = function () {
+    
+}
+
