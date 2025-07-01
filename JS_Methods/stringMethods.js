@@ -327,7 +327,175 @@ String.prototype.mySplit = function (separator, limit) {
 // JS String search methods
 // method indexOf
 
-String.prototype.myIndexOf = function () {
+String.prototype.myIndexOf = function (searchValue, fromIndex = 0) {
+    if (searchValue === "") {
+        return fromIndex > this.length ? this.length : fromIndex;
+    }
+
+    if (fromIndex >= this.length) {
+        return -1;
+    }
+
+    if (fromIndex < 0) {
+        fromIndex = 0;
+    }
     
+    if (searchValue == undefined) {
+        searchValue = "undefined";
+    }
+
+    if (Array.isArray(searchValue)) {
+        return 0;
+    }
+
+    for (let i = fromIndex; i <= this.length - searchValue.length; ++i) {
+        const partString = this.slice(i, i + searchValue.length);
+        
+        if (partString === searchValue) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
+// method lastIndexOf
+
+String.prototype.myLastIndexOf = function (searchValue, fromIndex = this.length - 1) {
+    if (searchValue === undefined) {
+        searchValue = "undefined";
+    }
+
+    if (Array.isArray(searchValue) || searchValue === "") {
+        return this.length;
+    }
+
+    if (typeof searchValue !== "string") {
+        return -1;
+    }
+
+    if (fromIndex <= 0) {
+        return -1;
+    }
+
+    for (let i = fromIndex; i >= 0; --i) {
+        const partString = this.slice(i, i + searchValue.length);
+        
+        if (partString === searchValue) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+// method search 
+
+String.prototype.mySearch = function (regexp) {
+    regexp = regexp instanceof RegExp ? regexp : new RegExp(regexp);
+
+    let res = regexp.exec(this);
+
+    return res === null ? -1 : res.index;
+}
+
+// method includes
+
+String.prototype.myIncludes = function (searchString, position = 0) {
+    if (searchString === undefined) {
+        searchString = "undefined";
+    }
+
+    if (position >= this.length) {
+        return false;
+    }
+
+    if (position < 0) {
+        position = 0;
+    }
+
+    for (let i = position; i <= this.length - searchString.length; ++i) {
+        let j = 0;
+
+        for (j; j < searchString.length && this[i + j] === searchString[j];  ++j);
+
+        if (!searchString[j]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// method startsWith
+
+String.prototype. myStartsWith = function (searchString, position = 0) {
+    if (searchString === undefined) {
+        searchString = "undefined";
+    }
+
+    if (searchString === "") {
+        return true;
+    }
+
+    if (Array.isArray(searchString)) {
+        return true;
+    }
+
+    if (typeof searchString !== "string") {
+        return false;
+    }
+
+    if (position < 0) {
+        position = 0;
+    }
+
+    if (position >= this.length) {
+        return false;
+    }
+
+    for (let i = position; i <= this.length - searchString.length; ++i) {
+        let j = 0;
+
+        for (j; j < searchString.length && this[i + j] === searchString[j]; ++j);
+
+        if (!searchString[j]) {
+            return true;
+        }
+
+        return false;
+    }    
+}
+
+// method endsWith
+
+String.prototype.myEndsWith = function (searchString, length = this.length) {
+    if (searchString === undefined) {
+        searchString = "undefined";
+    }
+
+    if (Array.isArray(searchString)) {
+        return true;
+    }
+
+    if (typeof searchString !== "string") {
+        return false;
+    }
+
+    if (length < 0 || length > this.length) {
+        return false;
+    }
+
+    for (let i = length - searchString.length; i <= length; ++i) {
+        j = 0;
+
+        for (j; j < searchString.length && this[i + j] === searchString[j]; ++j);
+
+        if (!searchString[j]) {
+            return true;
+        }
+
+        return false;
+    }
+
+}
