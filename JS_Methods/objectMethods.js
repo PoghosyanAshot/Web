@@ -1,0 +1,3 @@
+// JS Static Object methods
+
+
