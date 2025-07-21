@@ -7,8 +7,9 @@
 
 int poleSize = 0;
 int bombCount = 0;
+int flagsCount = 0;
 
-char** createPole(int, int);
+void** createPole(int, int);
 
 void freePole(char**, int, int);
 
@@ -22,6 +23,8 @@ void addBombes(char**);
 
 void countOfNeigbhourBombs(char**, int, int);
 
+void inedexesOfBombesInPole(char**, int**);
+
 void openPole(char**, char**, int, int, int, int, int, int);
 
 void clearStdinBuffer(void);
@@ -34,13 +37,17 @@ int chooseDifficult(void);
 
 void inputIndex(int*, char*);
 
-bool isValidIndex(char**, int, int);
+bool isValidIndex(char**, char**, int, int);
 
 void openPoleOrPutFlag(int*);
 
-void putFlag(char**, char**, int, int);
+bool putFlag(char**, char**, int, int);
+
+void removeFlag(char**, char**, int**, int, int);
 
 bool isLose(char**, int, int);
+
+void showBombs(char**, char**);
 
 bool isWin(char**, int, int);
 
@@ -55,9 +62,9 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-char** createPole(int row, int col)
+void** createPole(int row, int col)
 {
-    char** res = (char**) malloc(sizeof(char*) * row);
+    char** res = (char**) malloc(sizeof(char**) * row);
 
     if (!res) {
         perror("Can not crete game pole!");
@@ -65,7 +72,7 @@ char** createPole(int row, int col)
     }
 
     for (int i = 0; i < row; ++i) {
-        res[i] = (char*) malloc(sizeof(char) * col);
+        res[i] = (char*) malloc(sizeof(char*) * col);
         
         if (!res[i]) {
             for (int j = 0; j < i; ++j) {
@@ -79,7 +86,7 @@ char** createPole(int row, int col)
         }
     }
 
-    return res;
+    return (void**) res;
 }
 
 void freePole(char** pole, int row, int col)
@@ -168,7 +175,7 @@ void addBombes(char** pole)
         j = rand() % poleSize;
 
         if (pole[i][j] == '0') {
-            pole[i][j] = 'B';
+            pole[i][j] = '*';
             ++count;
         }
     }
@@ -197,7 +204,7 @@ void countOfNeigbhourBombs(char** pole, int rows, int columns)
                     tmp = col;
                     
                     while (j < columns - 1 ? tmp <= j + 1 : tmp < columns) {
-                        if (pole[row][tmp] == 'B') {
+                        if (pole[row][tmp] == '*') {
                             ++count;
                         } 
 
@@ -215,60 +222,76 @@ void countOfNeigbhourBombs(char** pole, int rows, int columns)
     return;
 }
 
+void inedexesOfBombesInPole(char** pole, int** indexes)
+{
+    int index = 0;
+    
+    for (int i = 0; i < poleSize; ++i) {
+        for (int j = 0; j < poleSize; ++j) {
+            if (pole[i][j] == '*') {
+                indexes[index][0] = i;
+                indexes[index++][1] = j;
+            }
+        }
+    }
+
+    return;
+}
+
 void openPole(char** pole, char** maskPole, int i, int j, int minRow, int maxRow, int minCol, int maxCol)
 {
-    if (maskPole[i][j] > 0 || pole[i][j] == 'B') return;
+    if (maskPole[i][j] > 0 || pole[i][j] == '*') return;
 
     maskPole[i][j] = 1;
 
     // Up
 
-    if (i - 1 >= minRow && i - 1 <= maxRow && pole[i - 1][j] != 'B') {
+    if (i - 1 >= minRow && i - 1 <= maxRow && pole[i - 1][j] != '*') {
         openPole(pole, maskPole, i - 1, j, minRow, maxRow, minCol, maxCol); }
 
     // Down
     
-    if (i + 1 >= minRow && i + 1 <= maxRow && pole[i + 1][j] != 'B') {
+    if (i + 1 >= minRow && i + 1 <= maxRow && pole[i + 1][j] != '*') {
         openPole(pole, maskPole, i + 1, j, minRow, maxRow, minCol, maxCol);
     }
 
     // Left
 
-    if (j - 1 >= minCol && j - 1 <= maxCol && pole[i][j - 1] != 'B') {
+    if (j - 1 >= minCol && j - 1 <= maxCol && pole[i][j - 1] != '*') {
         openPole(pole, maskPole, i, j - 1, minRow, maxRow, minCol, maxCol);
     }
 
     // Right
 
-    if (j + 1 >= minCol && j + 1 <= maxCol && pole[i][j + 1] != 'B') {
+    if (j + 1 >= minCol && j + 1 <= maxCol && pole[i][j + 1] != '*') {
         openPole(pole, maskPole, i, j + 1, minRow, maxRow, minCol, maxCol);
     }
 
     // Up and Left
 
     if (i - 1 >= minRow && i - 1 <= maxRow && j - 1 >= minCol && j - 1 <= maxCol 
-        && pole[i - 1][j - 1] != 'B') {
+        && pole[i - 1][j - 1] != '*') {
         openPole(pole, maskPole, i - 1, j - 1, minRow, maxRow, minCol, maxCol);
     }
 
     // Up and Right
 
     if (i - 1 >= minRow && i - 1 < maxRow && j + 1 >= minCol && j + 1 <= maxCol 
-        && pole[i - 1][j + 1] != 'B') {
+        && pole[i - 1][j + 1] != '*') {
         openPole(pole, maskPole, i - 1, j + 1, minRow, maxRow, minCol, maxCol);
     }
 
     // Down and Left
 
     if (i + 1 >= minRow && i + 1 <= maxRow && j - 1 >= minCol && j - 1 <= maxCol 
-        && pole[i + 1][j - 1] != 'B') {
+        && pole[i + 1][j - 1] != '*') {
         openPole(pole, maskPole, i + 1, j - 1, minRow, maxRow, minCol, maxCol);
     }
 
     // Down and Right
 
     if (i + 1 >= minRow && i + 1 <= maxRow && j + 1 >= minCol && j + 1 <= maxCol 
-        && pole[i + 1][j + 1] != 'B') {
+        && pole[i + 1][j + 1] != '*') {
         openPole(pole, maskPole, i + 1, j + 1, minRow, maxRow, minCol, maxCol);
     }
 }
@@ -415,7 +438,7 @@ int chooseDifficult(void)
 void inputIndex(int* i, char* j)
 {
 start:
-    printf("Please input the index for row: ");
+    printf("\n\nPlease input the index for row: ");
     if (!scanf("%d", i)) {
         clearStdinBuffer();
         printf("Invalid move try again\n");
@@ -434,11 +457,11 @@ start:
     return;
 }
 
-bool isValidIndex(char** maskPole, int i, int j)
+bool isValidIndex(char** pole, char** maskPole, int i, int j)
 {
     if (i < 0 || i > poleSize - 1 || j < 0 || j > poleSize - 1) return false;
     
-    if (maskPole[i][j] > 0) return false;
+    if (maskPole[i][j] > 0 && pole[i][j] != 'F') return false;
 
     return true;
 }
@@ -463,19 +486,75 @@ start:
     return;
 }
 
-void putFlag(char** pole, char** maskPole, int i, int j)
+bool putFlag(char** pole, char** maskPole, int i, int j)
 {
-    pole[i][j] = 'F';   
-    maskPole[i][j] = 1;
+    if (flagsCount) {
+        pole[i][j] = 'F';
+        maskPole[i][j] = 1;
+
+        --flagsCount;
+        return true;
+    }
+
+    return false;
+}
+
+void removeFlag(char** pole, char** maskPole, int** inedexesOfBombes, int i, int j)
+{
+    char ifRemove;
+    
+    printf("Remove flag?\n\n");
+    printf("if yes press 'y'\n");
+    printf("if no press 'n'\n");
+
+start:
+    scanf("%c", &ifRemove); 
+    clearStdinBuffer();
+
+    if (ifRemove != 'y' && ifRemove != 'Y'
+        && ifRemove != 'n' && ifRemove != 'N') {
+        printf("Invalid move please try again!\n");
+        goto start;
+    }
+
+    if (ifRemove == 'n' || ifRemove == 'N') return;
+    
+    for (int k = 0; k < bombCount; ++k) {
+        if (inedexesOfBombes[k][0] == i && inedexesOfBombes[k][1] == j) {
+            pole[i][j] = '*';
+            maskPole[i][j] = 0;
+            ++flagsCount;
+            return;
+        }
+    }
+
+    pole[i][j] = '0'; 
+    countOfNeigbhourBombs(pole, poleSize, poleSize);
+
+    maskPole[i][j] = 0;
+    ++flagsCount;
 
     return;
 }
 
 bool isLose(char** pole, int i, int j)
 {
-    if (pole[i][j] == 'B') return true;
+    if (pole[i][j] == '*') return true;
 
     return false;
+}
+
+void showBombs(char** pole, char** maskPole)
+{
+    for (int i = 0; i < poleSize; ++i) {
+        for (int j = 0; j < poleSize; ++j) {
+            if (pole[i][j] == '*') {
+                maskPole[i][j] = 1;
+            }
+        }
+    }
+
+    return;
 }
 
 bool isWin(char** maskPole, int row, int col)
@@ -506,29 +585,36 @@ void startGame(void)
         case 1: 
             poleSize = 10;
             bombCount = 20;
+            flagsCount = 20;
             break;
 
         case 2:
             poleSize = 15;
             bombCount = 30;
+            flagsCount = 30;
             break;
         
         case 3:
             poleSize = 20;
             bombCount = 60;
+            flagsCount = 60;
             break;
     }
 
-    char** pole = createPole(poleSize, poleSize);
-    char** maskPole = createPole(poleSize, poleSize);
+    char** pole = (char**) createPole(poleSize, poleSize);
+    char** maskPole = (char**) createPole(poleSize, poleSize);
+    int** inedexesOfBombes = (int**) createPole(sizeof(int*) * bombCount, sizeof(int) * 2);
 
-    inputPole(pole, '0');    
+    inputPole(pole, '0');
     inputPole(maskPole, 0);    
-
+    
     addBombes(pole);
     countOfNeigbhourBombs(pole, poleSize, poleSize);
+
+    inedexesOfBombesInPole(pole, inedexesOfBombes);
     
     printPole(pole, maskPole, poleSize, poleSize);
+    printf("\nThe flags count => %d", flagsCount);
 
     while (true) {
         j = -1;
@@ -536,15 +622,23 @@ void startGame(void)
         inputIndex(&i, &scanJ);
         
         printPole(pole, maskPole, poleSize, poleSize);
+        printf("\nThe flags count => %d", flagsCount);
 
         if (scanJ >= 65 && scanJ <= 90) j = scanJ - 65;
 
         if (scanJ >= 97 && scanJ <= 122) j = scanJ - 97;
 
-        printf("i - %d\n", i);
+        printf("\ni - %d\n", i);
         printf("j - %d\n", j);
 
-        if (!isValidIndex(maskPole, i, j)) {
+        if (pole[i][j] == 'F') {
+            removeFlag(pole, maskPole, inedexesOfBombes, i, j);
+            printPole(pole, maskPole, poleSize, poleSize);
+            printf("\nThe flags count => %d", flagsCount);
+            continue;
+        }
+
+        if (!isValidIndex(pole, maskPole, i, j)) {
             printf("Invalid move please try again\n");
             continue;
         }
@@ -554,15 +648,19 @@ void startGame(void)
         if (openOrFlag == 0) {
             
             if (isLose(pole, i, j)) {
-            puts("You Lose");
-            puts("Thank you for the game!");
-                
-            freePole(pole, poleSize, poleSize);
-            freePole(maskPole, poleSize, poleSize);
+                puts("You Lose");
+                puts("Thank you for the game!");
 
-            sleep(3);
-            return;
-        }
+                showBombs(pole, maskPole);
+                printPole(pole, maskPole, poleSize, poleSize);
+                
+                freePole(pole, poleSize, poleSize);
+                freePole(maskPole, poleSize, poleSize);
+
+                sleep(3);
+                
+                return;
+            }
 
             minRow = i > 1 ? i - 2 : i;
             maxRow = i < poleSize - 2 ? i + 2 : i;
@@ -571,11 +669,17 @@ void startGame(void)
 
             openPole(pole, maskPole, i, j, minRow, maxRow, minCol, maxCol);
             printPole(pole, maskPole, poleSize, poleSize);
+            printf("\nThe flags count => %d", flagsCount);
         }
 
         if (openOrFlag == 1) {
-            putFlag(pole, maskPole, i, j);
+            if (!putFlag(pole, maskPole, i, j)) {
+                printf("Flags limit is sold out\n");
+                continue;
+            }
+            
             printPole(pole, maskPole, poleSize, poleSize);
+            printf("\nThe flags count => %d", flagsCount);
         }
 
         if (isWin(maskPole, poleSize, poleSize)) {
